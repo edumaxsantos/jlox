@@ -19,7 +19,7 @@ public class Interpreter implements Expr.Visitor<Object> {
         switch (expr.operator.type) {
             case GREATER, GREATER_EQUAL,
                  LESS, LESS_EQUAL, MINUS,
-                 SLASH, STAR -> checkNumberOperands(expr.operator, left, right);
+                 SLASH -> checkNumberOperands(expr.operator, left, right);
         }
 
         return switch (expr.operator.type) {
@@ -44,7 +44,25 @@ public class Interpreter implements Expr.Visitor<Object> {
                 throw new RuntimeError(expr.operator, "Operands must be two numbers or two strings");
             }
             case SLASH -> (double) left / (double) right;
-            case STAR -> (double) left * (double) right;
+            case STAR -> {
+                if (left instanceof Double && right instanceof Double) {
+                    yield (double) left * (double) right;
+                }
+
+                if (left instanceof String && right instanceof Double) {
+                    if (!isInteger(right)) {
+                        throw new RuntimeError(expr.operator, "Numeric value is not integer.");
+                    }
+                    yield ((String) left).repeat(Math.max(0, Integer.parseInt(stringify(right))));
+                }
+                if (left instanceof Double && right instanceof String) {
+                    if (!isInteger(left)) {
+                        throw new RuntimeError(expr.operator, "Numeric value is not integer.");
+                    }
+                    yield ((String) right).repeat(Math.max(0, Integer.parseInt(stringify(left))));
+                }
+                throw new RuntimeError(expr.operator, "At least one of the sides is not valid");
+            }
             default -> throw new RuntimeException("Not matched anything");
         };
     }
@@ -101,6 +119,10 @@ public class Interpreter implements Expr.Visitor<Object> {
         if (a == null) return false;
 
         return a.equals(b);
+    }
+
+    private boolean isInteger(Object d) {
+        return ((double) d % 1) == 0;
     }
 
     private String stringify(Object object) {
