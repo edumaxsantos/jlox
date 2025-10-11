@@ -43,7 +43,12 @@ public class Interpreter implements Expr.Visitor<Object> {
                 }
                 throw new RuntimeError(expr.operator, "Operands must be two numbers or two strings");
             }
-            case SLASH -> (double) left / (double) right;
+            case SLASH -> {
+                if ((double) right == 0) {
+                    throw new RuntimeError(expr.operator, "Can't divide by 0");
+                }
+                yield (double) left / (double) right;
+            }
             case STAR -> {
                 if (left instanceof Double && right instanceof Double) {
                     yield (double) left * (double) right;
