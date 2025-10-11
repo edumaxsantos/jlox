@@ -34,8 +34,12 @@ public class Interpreter implements Expr.Visitor<Object> {
                 if (left instanceof Double && right instanceof Double) {
                     yield (double) left + (double) right;
                 }
-                if (left instanceof String && right instanceof String) {
-                    yield left + (String) right;
+
+                if (left instanceof String) {
+                    yield left + stringify(right);
+                }
+                if (right instanceof String) {
+                    yield stringify(left) + right;
                 }
                 throw new RuntimeError(expr.operator, "Operands must be two numbers or two strings");
             }
