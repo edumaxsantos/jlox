@@ -40,7 +40,10 @@ public class Lox {
             System.out.print("> ");
             String line = reader.readLine();
             if (line == null) break;
-            run(line);
+            try {
+                run(line);
+            } catch (RuntimeException ignored) {
+            }
             hadError = false;
         }
     }
@@ -49,11 +52,11 @@ public class Lox {
         var scanner = new Scanner(source);
         List<Token> tokens = scanner.scanTokens();
         var parser = new Parser(tokens);
-        Expr expression = parser.parse();
+        List<Stmt> statements = parser.parse();
 
         if (hadError) return;
 
-        interpreter.interpret(expression);
+        interpreter.interpret(statements);
 
         //System.out.println(new AstPrinter().print(expression));
     }
