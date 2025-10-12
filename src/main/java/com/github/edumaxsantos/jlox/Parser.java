@@ -35,10 +35,26 @@ public class Parser {
     }
 
     private Stmt statement() {
+        if (match(IF)) return ifStatement();
         if (match(PRINT)) return printStatement();
         if (match(LEFT_BRACE)) return new Stmt.Block(block());
 
         return expressionStatement();
+    }
+
+    private Stmt ifStatement() {
+        consume(LEFT_PAREN, "Expect '(' after 'if'.");
+        Expr condition = expression();
+        consume(RIGHT_PAREN, "Expect ')' after if condition.");
+
+        Stmt thenBranch = statement();
+        Stmt elseBranch = null;
+
+        if (match(ELSE)) {
+            elseBranch = statement();
+        }
+
+        return new Stmt.If(condition, thenBranch, elseBranch);
     }
 
     private Stmt varDeclaration() {
@@ -211,6 +227,11 @@ public class Parser {
         }
     }
 
+    /**
+     * Check if any passed type is the current one, consuming it if so.
+     * @param types all the type you want to try to check
+     * @return true if any type matched; false otherwise
+     */
     private boolean match(TokenType... types) {
         for (TokenType type: types) {
             if (check(type)) {
