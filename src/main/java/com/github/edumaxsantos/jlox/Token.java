@@ -15,6 +15,12 @@ public class Token {
 
     @Override
     public String toString() {
-        return type + " " + lexeme + " " + literal;
+        var stringBuilder = new StringBuilder();
+        stringBuilder.append(type).append(" ").append(lexeme);
+
+        if (literal != null) {
+            stringBuilder.append(" ").append(literal);
+        }
+        return stringBuilder.toString();
     }
 }
