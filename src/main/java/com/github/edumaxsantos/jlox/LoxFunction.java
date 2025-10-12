@@ -4,6 +4,12 @@ import java.util.List;
 
 public record LoxFunction(Stmt.Function declaration, Environment closure) implements LoxCallable {
 
+    LoxFunction bind(LoxInstance instance) {
+        Environment environment = new Environment(closure);
+        environment.define("this", instance);
+        return new LoxFunction(declaration, environment);
+    }
+
     @Override
     public Object call(Interpreter interpreter, List<Object> arguments) {
         Environment environment = new Environment(closure);
