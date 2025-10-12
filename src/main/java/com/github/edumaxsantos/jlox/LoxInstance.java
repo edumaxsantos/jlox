@@ -1,5 +1,6 @@
 package com.github.edumaxsantos.jlox;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -28,6 +29,17 @@ public class LoxInstance {
 
     @Override
     public String toString() {
-        return klass.name + " instance";
+        var stringBuilder = new StringBuilder();
+        stringBuilder.append("<").append(klass.name).append(" ").append("object");
+
+        LoxFunction toStringMethod = klass.findMethod("toString");
+        if (toStringMethod != null) {
+            stringBuilder.append(" - ").append("{")
+                    .append(toStringMethod.bind(this).call(Lox.interpreter, Collections.emptyList()))
+                    .append("}");
+        }
+        stringBuilder.append(">");
+
+        return stringBuilder.toString();
     }
 }
