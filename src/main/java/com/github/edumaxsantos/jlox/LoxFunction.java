@@ -2,12 +2,12 @@ package com.github.edumaxsantos.jlox;
 
 import java.util.List;
 
-public record LoxFunction(Stmt.Function declaration, Environment closure) implements LoxCallable {
+public record LoxFunction(Stmt.Function declaration, Environment closure, boolean isInitializer) implements LoxCallable {
 
     LoxFunction bind(LoxInstance instance) {
         Environment environment = new Environment(closure);
         environment.define("this", instance);
-        return new LoxFunction(declaration, environment);
+        return new LoxFunction(declaration, environment, isInitializer);
     }
 
     @Override
@@ -22,6 +22,9 @@ public record LoxFunction(Stmt.Function declaration, Environment closure) implem
         } catch (Return returnValue) {
             return returnValue.value;
         }
+
+        if (isInitializer) return closure.getAt(0, "this");
+
         return null;
     }
 
