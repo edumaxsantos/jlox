@@ -1,0 +1,11 @@
+fun my_method() {
+    var a;
+    var b = "my b";
+
+    print b;
+    print a;
+
+    var a;
+}
+
+my_method();
