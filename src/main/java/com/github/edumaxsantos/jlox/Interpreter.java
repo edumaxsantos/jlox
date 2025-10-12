@@ -165,7 +165,7 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
     }
 
     private String stringify(Object object) {
-        if (object == null) return "null";
+        if (object == null) return "nil";
 
         if (object instanceof Double) {
             String text = object.toString();
