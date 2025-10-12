@@ -34,7 +34,8 @@ public class GenerateAst {
                 "If         : Expr condition, Stmt thenBranch, Stmt elseBranch",
                 "Print      : Expr expression",
                 "Var        : Token name, Expr initializer",
-                "While      : Expr condition, Stmt body"
+                "While      : Expr condition, Stmt body",
+                "Break      : null"
         ));
     }
 
@@ -81,19 +82,21 @@ public class GenerateAst {
     private static void defineType(PrintWriter writer, String baseName, String className, String fieldList) {
         writer.println("  static class " + className + " extends " + baseName + " {");
 
-        writer.println("    " + className + "(" + fieldList + ") {");
+        if (!fieldList.equals("null")) {
+            writer.println("    " + className + "(" + fieldList + ") {");
 
-        String[] fields = fieldList.split(", ");
-        for (String field: fields) {
-            String name = field.split(" ")[1];
-            writer.println("      this." + name + " = " + name + ";");
-        }
+            String[] fields = fieldList.split(", ");
+            for (String field: fields) {
+                String name = field.split(" ")[1];
+                writer.println("      this." + name + " = " + name + ";");
+            }
 
-        writer.println("    }");
+            writer.println("    }");
 
-        writer.println();
-        for (String field : fields) {
-            writer.println("    final " + field + ";");
+            writer.println();
+            for (String field : fields) {
+                writer.println("    final " + field + ";");
+            }
         }
 
         writer.println();

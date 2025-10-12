@@ -72,8 +72,11 @@ public class Parser {
         }
 
         consume(RIGHT_PAREN, "Expect ')' after for clauses.");
+        Stmt body = null;
+        if (!check(BREAK)) {
+            body = statement();
+        }
 
-        Stmt body = statement();
 
         if (increment != null) {
             body = new Stmt.Block(Arrays.asList(body, new Stmt.Expression(increment)));
@@ -120,7 +123,12 @@ public class Parser {
         consume(LEFT_PAREN, "Expect '(' after 'while'.");
         Expr condition = expression();
         consume(RIGHT_PAREN, "Expect ')' after condition.");
-        Stmt body = statement();
+        Stmt body = null;
+        if (!check(BREAK)) {
+            body = statement();
+        } else {
+            body = breakStatement();
+        }
 
         return new Stmt.While(condition, body);
     }
@@ -137,10 +145,20 @@ public class Parser {
         return new Stmt.Expression(expr);
     }
 
+    private Stmt breakStatement() {
+        advance();
+        consume(SEMICOLON, "Expect ';' after break keyword");
+        return new Stmt.Break();
+    }
+
     private List<Stmt> block() {
         List<Stmt> statements = new ArrayList<>();
 
         while (!check(RIGHT_BRACE) && !isAtEnd()) {
+            if (check(BREAK)) {
+                statements.add(breakStatement());
+                break;
+            }
             statements.add(declaration());
         }
 

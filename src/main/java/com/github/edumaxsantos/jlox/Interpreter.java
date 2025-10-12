@@ -20,17 +20,22 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
         stmt.accept(this);
     }
 
-    private void executeBlock(List<Stmt> statements, Environment environment) {
+    private int executeBlock(List<Stmt> statements, Environment environment) {
         Environment previous = this.environment;
         try {
             this.environment = environment;
 
             for (Stmt statement : statements) {
+                if (statement instanceof Stmt.Break) {
+                    throw new RuntimeError(null, "should not be raised");
+                }
                 execute(statement);
             }
         } finally {
             this.environment = previous;
         }
+
+        return 0;
     }
 
     @Override
@@ -241,9 +246,18 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
     @Override
     public Void visitWhileStmt(Stmt.While stmt) {
         while (isTruthy(evaluate(stmt.condition))) {
-            execute(stmt.body);
+            try {
+                execute(stmt.body);
+            } catch (RuntimeError e) {
+                break;
+            }
         }
 
+        return null;
+    }
+
+    @Override
+    public Void visitBreakStmt(Stmt.Break stmt) {
         return null;
     }
 }
