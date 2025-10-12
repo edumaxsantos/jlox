@@ -188,7 +188,11 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
 
     @Override
     public Void visitExpressionStmt(Stmt.Expression stmt) {
-        System.out.println(stringify(evaluate(stmt.expression)));
+        Object evaluated = evaluate(stmt.expression);
+        if (stmt.expression instanceof Expr.Assign) {
+            return null;
+        }
+        System.out.println(stringify(evaluated));
         return null;
     }
 
