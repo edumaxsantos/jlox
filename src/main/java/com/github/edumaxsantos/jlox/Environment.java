@@ -20,22 +20,22 @@ public class Environment {
     }
 
     public Object get(Token name) {
-        if (values.containsKey(name.lexeme)) {
-            var value = values.get(name.lexeme);
+        if (values.containsKey(name.lexeme())) {
+            var value = values.get(name.lexeme());
             if (value == null) {
-                throw new RuntimeError(name, "Variable '" + name.lexeme + "' is not assigned.");
+                throw new RuntimeError(name, "Variable '" + name.lexeme() + "' is not assigned.");
             }
             return value;
         }
 
         if (enclosing != null) return enclosing.get(name);
 
-        throw new RuntimeError(name, "Undefined variable '" + name.lexeme + "'.");
+        throw new RuntimeError(name, "Undefined variable '" + name.lexeme() + "'.");
     }
 
     public void assign(Token name, Object value) {
-        if (values.containsKey(name.lexeme)) {
-            values.put(name.lexeme, value);
+        if (values.containsKey(name.lexeme())) {
+            values.put(name.lexeme(), value);
             return;
         }
 
@@ -44,6 +44,6 @@ public class Environment {
             return;
         }
 
-        throw new RuntimeError(name, "Undefined variable '" + name.lexeme + "'.");
+        throw new RuntimeError(name, "Undefined variable '" + name.lexeme() + "'.");
     }
 }

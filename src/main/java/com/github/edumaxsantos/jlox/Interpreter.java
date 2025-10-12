@@ -71,13 +71,13 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
         Object left = evaluate(expr.left);
         Object right = evaluate(expr.right);
 
-        switch (expr.operator.type) {
+        switch (expr.operator.type()) {
             case GREATER, GREATER_EQUAL,
                  LESS, LESS_EQUAL, MINUS,
                  SLASH -> checkNumberOperands(expr.operator, left, right);
         }
 
-        return switch (expr.operator.type) {
+        return switch (expr.operator.type()) {
             case GREATER -> (double) left > (double) right;
             case GREATER_EQUAL -> (double) left >= (double) right;
             case LESS -> (double) left < (double) right;
@@ -163,7 +163,7 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
     public Object visitLogicalExpr(Expr.Logical expr) {
         Object left = evaluate(expr.left);
 
-        if (expr.operator.type == TokenType.OR) {
+        if (expr.operator.type() == TokenType.OR) {
             if (isTruthy(left)) return left;
         } else {
             if (!isTruthy(left)) return left;
@@ -175,7 +175,7 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
     public Object visitUnaryExpr(Expr.Unary expr) {
         Object right = evaluate(expr.right);
 
-        return switch (expr.operator.type) {
+        return switch (expr.operator.type()) {
             case BANG -> !isTruthy(right);
             case MINUS -> {
                 checkNumberOperand(expr.operator, right);
@@ -283,7 +283,7 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
             value = evaluate(stmt.initializer);
         }
 
-        environment.define(stmt.name.lexeme, value);
+        environment.define(stmt.name.lexeme(), value);
 
         return null;
     }
