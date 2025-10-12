@@ -232,6 +232,8 @@ public class Parser {
             if (expr instanceof Expr.Variable varExpr) {
                 Token name = varExpr.name;
                 return new Expr.Assign(name, value);
+            } else if (expr instanceof Expr.Get get) {
+                return new Expr.Set(get.object, get.name, value);
             }
 
             throw error(equals, "Invalid assignment target.");
