@@ -252,7 +252,9 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
         if (stmt.expression instanceof Expr.Assign) {
             return null;
         }
-        System.out.println(stringify(evaluated));
+        if (evaluated != null) {
+            System.out.println(stringify(evaluated));
+        }
         return null;
     }
 
