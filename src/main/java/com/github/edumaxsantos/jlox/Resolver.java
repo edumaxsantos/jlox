@@ -18,6 +18,12 @@ public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
         NONE, FUNCTION
     }
 
+    public void resolve(List<Stmt> statements) {
+        for (Stmt statement : statements) {
+            resolve(statement);
+        }
+    }
+
     @Override
     public Void visitAssignExpr(Expr.Assign expr) {
         resolve(expr.value);
@@ -142,12 +148,6 @@ public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
     @Override
     public Void visitBreakStmt(Stmt.Break stmt) {
         return null;
-    }
-
-    void resolve(List<Stmt> statements) {
-        for (Stmt statement : statements) {
-            resolve(statement);
-        }
     }
 
     private void resolve(Stmt stmt) {
