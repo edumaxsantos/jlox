@@ -295,6 +295,9 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
             return null;
         }
         if (evaluated != null) {
+            if (stmt.expression instanceof Expr.Set) {
+                return null;
+            }
             System.out.println(stringify(evaluated));
         }
         return null;
