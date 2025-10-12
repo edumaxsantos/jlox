@@ -66,24 +66,24 @@ public class GenerateAst {
             }
 
             writer.println();
-            writer.println("  abstract <R> R accept(Visitor<R> visitor);");
+            writer.println("  public abstract <R> R accept(Visitor<R> visitor);");
 
             writer.println("}");
         }
     }
 
     private static void defineVisitor(PrintWriter writer, String baseName, List<String> types) {
-        writer.println("  interface Visitor<R> {");
+        writer.println("  public interface Visitor<R> {");
         for (String type: types) {
             String typeName = type.split(":")[0].trim();
-            writer.println("    R visit" + typeName + baseName + "(" + typeName + " " + baseName.toLowerCase() + ");");
+            writer.println("    public R visit" + typeName + baseName + "(" + typeName + " " + baseName.toLowerCase() + ");");
         }
 
         writer.println("  }");
     }
 
     private static void defineType(PrintWriter writer, String baseName, String className, String fieldList) {
-        writer.println("  static class " + className + " extends " + baseName + " {");
+        writer.println("  public static class " + className + " extends " + baseName + " {");
 
         if (!fieldList.equals("null")) {
             writer.println("    " + className + "(" + fieldList + ") {");
@@ -104,7 +104,7 @@ public class GenerateAst {
 
         writer.println();
         writer.println("    @Override");
-        writer.println("    <R> R accept(Visitor<R> visitor) {");
+        writer.println("    public <R> R accept(Visitor<R> visitor) {");
         writer.println("      return visitor.visit" + className + baseName + "(this);");
         writer.println("    }");
 
