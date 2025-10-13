@@ -1,6 +1,6 @@
 program     ::= declaration* EOF ;
 declaration ::= classDecl | funDecl | varDecl | statement ;
-classDecl   ::= "class" IDENTIFIER "{" classBody* "}" ;
+classDecl   ::= "class" IDENTIFIER ( "<" IDENTIFIER )? "{" classBody* "}" ;
 classBody   ::= function | classMethod ;
 funDecl     ::= "fun" function ;
 classMethod ::= "class" function ;
