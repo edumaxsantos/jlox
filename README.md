@@ -13,3 +13,5 @@ without actually implementing it.
 I use Maven as my build system, so to generate the AST code, use
 `mvn generate-sources`.
 If you run `mvn compile` it will also generate those source files.
+
+You can visualize the grammar here: [grammar image](grammar.png)
