@@ -1,0 +1,13 @@
+class Super {
+    // this is supposed to be overridden by a subclass
+    hello() {
+        notImplemented();
+    }
+}
+
+class Subb < Super {
+    hello() {
+        print "Oi";
+    }
+}
+Subb().hello();
