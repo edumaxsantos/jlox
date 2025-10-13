@@ -291,12 +291,23 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
 
 
         Map<String, LoxFunction> methods = new HashMap<>();
+        Map<String, LoxFunction> staticMethods = new HashMap<>();
         for (Stmt.Function method: stmt.methods) {
             var function = new LoxFunction(method, environment, method.name.lexeme().equals("init"));
-            methods.put(method.name.lexeme(), function);
+            if (method.name.lexeme().startsWith("static")) {
+                staticMethods.put(method.name.lexeme().replace("static.", ""), function);
+            } else {
+                methods.put(method.name.lexeme(), function);
+            }
         }
 
+        LoxClass metaclass = new LoxClass(stmt.name.lexeme() + ".metaclass", staticMethods);
+        metaclass.metaclass = metaclass;
+        metaclass.setKlass(metaclass);
+
         LoxClass klass = new LoxClass(stmt.name.lexeme(), methods);
+        klass.metaclass = metaclass;
+        klass.setKlass(klass.metaclass);
         environment.assign(stmt.name, klass);
         return null;
     }

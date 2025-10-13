@@ -17,8 +17,15 @@ public class LoxInstance {
             return fields.get(name.lexeme());
         }
 
+        if (klass.metaclass.staticFields.containsKey(name.lexeme())) {
+            return klass.metaclass.staticFields.get(name.lexeme());
+        }
+
         LoxFunction method = klass.findMethod(name.lexeme());
         if (method != null) return method.bind(this);
+
+        LoxFunction staticMethod = klass.metaclass.findMethod(name.lexeme());
+        if (staticMethod != null) return staticMethod;
 
         throw new RuntimeError(name, "Undefined property '" + name.lexeme() + "'.");
     }
@@ -41,5 +48,14 @@ public class LoxInstance {
         stringBuilder.append(">");
 
         return stringBuilder.toString();
+    }
+
+    public LoxClass getKlass() {
+        return this.klass;
+    }
+
+    public void setKlass(LoxClass klass) {
+        this.klass = klass;
+        this.klass.staticFields.put("metaclass", this.klass);
     }
 }

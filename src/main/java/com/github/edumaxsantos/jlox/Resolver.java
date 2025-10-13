@@ -23,6 +23,7 @@ public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
         int declaredLine;
         boolean defined;
         boolean used;
+        boolean isParameter;
     }
 
     private enum ClassType {
@@ -38,7 +39,7 @@ public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
             for (var key: scope.keySet()) {
                 var variableInfo = scope.get(key);
 
-                if (!variableInfo.used) {
+                if (!variableInfo.used && !variableInfo.isParameter) {
                     Lox.error(variableInfo.declaredLine, "Variable '" + key + "' is declared but never used.");
                 }
             }
@@ -285,6 +286,8 @@ public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
         for (Token param: function.params) {
             declare(param);
             define(param);
+            var variableInfo = scopes.peek().get(param.lexeme());
+            variableInfo.isParameter = true;
         }
 
         resolve(function.body);

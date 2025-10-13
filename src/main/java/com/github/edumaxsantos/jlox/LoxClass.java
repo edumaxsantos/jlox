@@ -1,15 +1,20 @@
 package com.github.edumaxsantos.jlox;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class LoxClass implements LoxCallable {
+public class LoxClass extends LoxInstance implements LoxCallable {
     final String name;
     private final Map<String, LoxFunction> methods;
+    public LoxClass metaclass;
+    public final Map<String, Object> staticFields;
 
     LoxClass(String name, Map<String, LoxFunction> methods) {
+        super(null);
         this.name = name;
         this.methods = methods;
+        this.staticFields = new HashMap<>();
     }
 
     LoxFunction findMethod(String name) {

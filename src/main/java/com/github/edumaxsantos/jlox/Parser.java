@@ -43,11 +43,21 @@ public class Parser {
 
         List<Stmt.Function> methods = new ArrayList<>();
         while (!check(RIGHT_BRACE) && !isAtEnd()) {
-            methods.add(function("method"));
+            methods.add(classBody());
         }
         consume(RIGHT_BRACE, "Expect '}' after class body.");
 
         return new Stmt.Class(name, methods);
+    }
+
+    private Stmt.Function classBody() {
+        if (match(CLASS)) return classMethod();
+
+        return function("method");
+    }
+
+    private Stmt.Function classMethod() {
+        return function("static");
     }
 
     private Stmt statement() {
@@ -194,6 +204,12 @@ public class Parser {
 
         consume(LEFT_BRACE, "Expect '{' before " + kind + " body.");
         List<Stmt> body = block();
+        // for static methods, add "static." to the name, helping to identify them when interpreting. This only works here
+        // at it is removed in a later step, when we have a separation of static and object methods.
+        if (kind.equals("static")) {
+            var newName = new Token(name.type(), kind + "." + name.lexeme(), name.literal(), name.line());
+            return new Stmt.Function(newName, parameters, body);
+        }
         return new Stmt.Function(name, parameters, body);
     }
 
