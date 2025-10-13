@@ -39,7 +39,9 @@ public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
             for (var key: scope.keySet()) {
                 var variableInfo = scope.get(key);
 
-                if (!variableInfo.used && !variableInfo.isParameter) {
+                if (variableInfo.isParameter) continue;
+
+                if (!variableInfo.used) {
                     Lox.error(variableInfo.declaredLine, "Variable '" + key + "' is declared but never used.");
                 }
             }
@@ -101,6 +103,12 @@ public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
     }
 
     @Override
+    public Void visitSuperExpr(Expr.Super expr) {
+        resolveLocal(expr, expr.keyword);
+        return null;
+    }
+
+    @Override
     public Void visitThisExpr(Expr.This expr) {
         if (currentClass == ClassType.NONE) {
             Lox.error(expr.keyword, "Can't use 'this' outside of a class.");
@@ -154,6 +162,12 @@ public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
 
         if (stmt.superclass != null) {
             resolve(stmt.superclass);
+            beginScope();
+            var variableInfo = new VariableInfo();
+            variableInfo.declaredLine = stmt.superclass.name.line();
+            variableInfo.defined = true;
+            variableInfo.used = true; // super is always used
+            scopes.peek().put("super", variableInfo);
         }
 
         beginScope();
@@ -172,6 +186,10 @@ public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
         }
 
         endScope();
+
+        if (stmt.superclass != null) {
+            endScope();
+        }
 
         currentClass = enclosingClass;
         return null;
