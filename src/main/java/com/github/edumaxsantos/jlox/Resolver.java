@@ -1,5 +1,7 @@
 package com.github.edumaxsantos.jlox;
 
+import com.github.edumaxsantos.jlox.ffi.NotImplemented;
+
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -7,12 +9,17 @@ import java.util.Stack;
 
 public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
     private final Interpreter interpreter;
-    private final Stack<Map<String, VariableInfo>> scopes = new Stack<>();
+    private final Stack<CurrentScope> scopes = new Stack<>();
     private FunctionType currentFunction = FunctionType.NONE;
     private ClassType currentClass = ClassType.NONE;
 
     Resolver(Interpreter interpreter) {
         this.interpreter = interpreter;
+    }
+
+    private static class CurrentScope {
+        String currentScopeName;
+        Map<String, VariableInfo> scopes;
     }
 
     private enum FunctionType {
@@ -24,6 +31,7 @@ public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
         boolean defined;
         boolean used;
         boolean isParameter;
+        Expr originalExpression;
     }
 
     private enum ClassType {
@@ -31,13 +39,20 @@ public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
     }
 
     public void resolve(List<Stmt> statements) {
+//        beginScope();
+//        for (var set: interpreter.globals.getValues().entrySet()) {
+//            scopes.peek().put(set.getKey(), null);
+//        }
         for (Stmt statement : statements) {
             resolve(statement);
         }
+//        endScope();
 
-        for (var scope: scopes) {
-            for (var key: scope.keySet()) {
-                var variableInfo = scope.get(key);
+        for (var currentScope: scopes) {
+            for (var key: currentScope.scopes.keySet()) {
+                var variableInfo = currentScope.scopes.get(key);
+
+                if (variableInfo == null) continue;
 
                 if (variableInfo.isParameter) continue;
 
@@ -133,7 +148,15 @@ public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
     public Void visitVariableExpr(Expr.Variable expr) {
         if (!scopes.isEmpty()) {
             var scope = scopes.peek();
-            var currentVariable = scope.get(expr.name.lexeme());
+            var currentVariable = scope.scopes.get(expr.name.lexeme());
+
+            if (currentVariable == null) {
+                var obj = interpreter.globals.get(expr.name);
+                if (obj instanceof NotImplemented notImplemented) {
+                    notImplemented.methodName = scope.currentScopeName;
+                }
+                return null;
+            }
 
             if (!currentVariable.defined) {
                 Lox.error(expr.name, "Can't read local variable '" + expr.name.lexeme() + "' in its own initializer.");
@@ -159,6 +182,7 @@ public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
         ClassType enclosingClass = currentClass;
         currentClass = ClassType.CLASS;
         declare(stmt.name);
+        //scopes.peek().get(stmt.name.lexeme()).used = true;
         define(stmt.name);
 
         if (stmt.superclass != null && stmt.name.lexeme().equals(stmt.superclass.name.lexeme())) {
@@ -169,19 +193,13 @@ public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
             currentClass = ClassType.SUBCLASS;
             resolve(stmt.superclass);
             beginScope();
-            var variableInfo = new VariableInfo();
-            variableInfo.declaredLine = stmt.superclass.name.line();
-            variableInfo.defined = true;
-            variableInfo.used = true; // super is always used
-            scopes.peek().put("super", variableInfo);
+            scopes.peek().currentScopeName = stmt.superclass.name.lexeme();
+            scopes.peek().scopes.put("super", null);
         }
 
         beginScope();
-        var variableInfo = new VariableInfo();
-        variableInfo.declaredLine = stmt.name.line();
-        variableInfo.defined = true;
-        variableInfo.used = true;
-        scopes.peek().put("this", variableInfo);
+        scopes.peek().currentScopeName = stmt.name.lexeme();
+        scopes.peek().scopes.put("this", null);
 
         for (Stmt.Function method: stmt.methods) {
             FunctionType declaration = FunctionType.METHOD;
@@ -275,7 +293,8 @@ public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
     }
 
     private void beginScope() {
-        scopes.push(new HashMap<>());
+        scopes.push(new CurrentScope());
+        scopes.peek().scopes = new HashMap<>();
     }
 
     private void endScope() {
@@ -285,7 +304,7 @@ public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
     private void declare(Token name) {
         if (scopes.isEmpty()) return;
 
-        Map<String, VariableInfo> scope = scopes.peek();
+        Map<String, VariableInfo> scope = scopes.peek().scopes;
         if (scope.containsKey(name.lexeme())) {
             Lox.error(name, "A variable with this name is already in this scope.");
         }
@@ -298,13 +317,13 @@ public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
     private void define(Token name) {
         if (scopes.isEmpty()) return;
 
-        var variableInfo = scopes.peek().get(name.lexeme());
+        var variableInfo = scopes.peek().scopes.get(name.lexeme());
         variableInfo.defined = true;
     }
 
     private void resolveLocal(Expr expr, Token name) {
         for (int i = scopes.size() - 1; i >= 0; i--) {
-            if (scopes.get(i).containsKey(name.lexeme())) {
+            if (scopes.get(i).scopes.containsKey(name.lexeme())) {
                 interpreter.resolve(expr, scopes.size() - 1 - i);
                 return;
             }
@@ -315,10 +334,13 @@ public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
         FunctionType enclosingFunction = currentFunction;
         currentFunction = type;
         beginScope();
+        var currentScope = scopes.pop();
+        currentScope.currentScopeName = scopes.peek().currentScopeName + "." + function.name.lexeme();
+        scopes.push(currentScope);
         for (Token param: function.params) {
             declare(param);
             define(param);
-            var variableInfo = scopes.peek().get(param.lexeme());
+            var variableInfo = scopes.peek().scopes.get(param.lexeme());
             variableInfo.isParameter = true;
         }
 

@@ -19,6 +19,10 @@ public class Environment {
         values.put(name, value);
     }
 
+    public Map<String, Object> getValues() {
+        return this.values;
+    }
+
     public Object get(Token name) {
         if (values.containsKey(name.lexeme())) {
             var value = values.get(name.lexeme());

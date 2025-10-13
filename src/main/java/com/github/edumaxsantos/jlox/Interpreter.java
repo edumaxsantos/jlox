@@ -1,6 +1,7 @@
 package com.github.edumaxsantos.jlox;
 
 import com.github.edumaxsantos.jlox.ffi.Clock;
+import com.github.edumaxsantos.jlox.ffi.NotImplemented;
 import com.github.edumaxsantos.jlox.ffi.Quit;
 
 import java.util.ArrayList;
@@ -10,13 +11,14 @@ import java.util.Map;
 
 public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
 
-    final Environment globals = new Environment();
+    public final Environment globals = new Environment();
     private Environment environment = globals;
     private final Map<Expr, Integer> locals = new HashMap<>();
 
     Interpreter() {
         globals.define("clock", new Clock());
         globals.define("quit", new Quit());
+        globals.define("notImplemented", new NotImplemented());
     }
 
     public void interpret(List<Stmt> statements) {
