@@ -6,13 +6,15 @@ import java.util.Map;
 
 public class LoxClass extends LoxInstance implements LoxCallable {
     final String name;
+    final LoxClass superclass;
     private final Map<String, LoxFunction> methods;
     public LoxClass metaclass;
     public final Map<String, Object> staticFields;
 
-    LoxClass(String name, Map<String, LoxFunction> methods) {
+    LoxClass(String name, LoxClass superclass, Map<String, LoxFunction> methods) {
         super(null);
         this.name = name;
+        this.superclass = superclass;
         this.methods = methods;
         this.staticFields = new HashMap<>();
     }
