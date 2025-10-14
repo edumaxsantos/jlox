@@ -31,7 +31,6 @@ public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
         boolean defined;
         boolean used;
         boolean isParameter;
-        Expr originalExpression;
     }
 
     private enum ClassType {
