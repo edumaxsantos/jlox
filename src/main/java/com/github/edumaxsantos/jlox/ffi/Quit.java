@@ -2,13 +2,14 @@ package com.github.edumaxsantos.jlox.ffi;
 
 import com.github.edumaxsantos.jlox.Interpreter;
 import com.github.edumaxsantos.jlox.LoxCallable;
+import com.github.edumaxsantos.jlox.LoxStatus;
 
 import java.util.List;
 
 public class Quit implements LoxCallable {
     @Override
     public Void call(Interpreter interpreter, List<Object> arguments) {
-        System.exit(0);
+        System.exit(LoxStatus.NO_ERROR.getErrorCode());
         return null;
     }
 

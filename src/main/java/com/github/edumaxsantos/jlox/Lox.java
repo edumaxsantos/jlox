@@ -9,30 +9,34 @@ import java.nio.file.Paths;
 import java.util.List;
 
 public class Lox {
-    static boolean hadError = false;
-    static boolean hadRuntimeError = false;
+    boolean hadError = false;
+    boolean hadRuntimeError = false;
 
-    public static final Interpreter interpreter = new Interpreter();
+    public static Interpreter interpreter;
 
     public static void main(String[] args) throws IOException {
         if (args.length > 1) {
             System.out.println("Usage: jlox [script]");
-            System.exit(64);
-        } else if (args.length == 1) {
-            runFile(args[0]);
-        } else {
-            runPrompt();
+            System.exit(LoxStatus.INVALID_PARAMS_ERROR.getErrorCode());
         }
+        var lox = new Lox();
+        interpreter = new Interpreter(lox);
+        if (args.length == 1) {
+            runFile(args[0], lox);
+        } else {
+            runPrompt(lox);
+        }
+        System.exit(0);
     }
 
-    private static void runFile(String path) throws IOException {
+    private static void runFile(String path, Lox lox) throws IOException {
         byte[] bytes = Files.readAllBytes(Paths.get(path));
-        run(new String(bytes, Charset.defaultCharset()));
-        if (hadError) System.exit(65);
-        if (hadRuntimeError) System.exit(70);
+        run(new String(bytes, Charset.defaultCharset()), lox);
+        if (lox.hadError) System.exit(LoxStatus.ERROR.getErrorCode());
+        if (lox.hadRuntimeError) System.exit(LoxStatus.RUNTIME_ERROR.getErrorCode());
     }
 
-    private static void runPrompt() throws IOException {
+    private static void runPrompt(Lox lox) throws IOException {
         var input = new InputStreamReader(System.in);
         var reader = new BufferedReader(input);
 
@@ -41,34 +45,34 @@ public class Lox {
             String line = reader.readLine();
             if (line == null) break;
             try {
-                run(line);
+                run(line, lox);
             } catch (RuntimeException ignored) {
             }
-            hadError = false;
+            lox.hadError = false;
         }
     }
 
-    private static void run(String source) {
-        var scanner = new Scanner(source);
+    private static void run(String source, Lox lox) {
+        var scanner = new Scanner(source, lox);
         List<Token> tokens = scanner.scanTokens();
-        var parser = new Parser(tokens);
+        var parser = new Parser(tokens, lox);
         List<Stmt> statements = parser.parse();
 
-        if (hadError) return;
+        if (lox.hadError) return;
 
-        Resolver resolver = new Resolver(interpreter);
+        Resolver resolver = new Resolver(interpreter, lox);
         resolver.resolve(statements);
 
-        if (hadError) return;
+        if (lox.hadError) return;
 
         interpreter.interpret(statements);
     }
 
-    static void error(int line, String message) {
+    void error(int line, String message) {
         report(line, "", message);
     }
 
-    static void error(Token token, String message) {
+    void error(Token token, String message) {
         if (token.type() == TokenType.EOF) {
             report(token.line(), " at end", message);
         } else {
@@ -76,7 +80,7 @@ public class Lox {
         }
     }
 
-    static void runtimeError(RuntimeError error) {
+    void runtimeError(RuntimeError error) {
         if (error.token != null) {
             System.err.println(error.getMessage() + "\n[line " + error.token.line() + "]");
         } else {
@@ -85,7 +89,7 @@ public class Lox {
         hadRuntimeError = true;
     }
 
-    private static void report(int line, String where, String message) {
+    private void report(int line, String where, String message) {
         System.err.println("[line " + line + "] Error " + where + ": " + message);
         hadError = true;
     }

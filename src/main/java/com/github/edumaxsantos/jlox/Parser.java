@@ -9,10 +9,12 @@ public class Parser {
     private static class ParseError extends RuntimeException {}
 
     private final List<Token> tokens;
+    private final Lox lox;
     private int current = 0;
 
-    public Parser(List<Token> tokens) {
+    public Parser(List<Token> tokens, Lox lox) {
         this.tokens = tokens;
+        this.lox = lox;
     }
 
     public List<Stmt> parse() {
@@ -418,7 +420,7 @@ public class Parser {
     }
 
     private ParseError error(Token token, String message) {
-        Lox.error(token, message);
+        lox.error(token, message);
         return new ParseError();
     }
 

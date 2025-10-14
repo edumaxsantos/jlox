@@ -12,10 +12,12 @@ import java.util.Map;
 public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
 
     public final Environment globals = new Environment();
+    private final Lox lox;
     private Environment environment = globals;
     private final Map<Expr, Integer> locals = new HashMap<>();
 
-    Interpreter() {
+    Interpreter(Lox lox) {
+        this.lox = lox;
         globals.define("clock", new Clock());
         globals.define("quit", new Quit());
         globals.define("notImplemented", new NotImplemented());
@@ -27,7 +29,7 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
                 execute(statement);
             }
         } catch (RuntimeError error) {
-            Lox.runtimeError(error);
+            lox.runtimeError(error);
         }
     }
 
