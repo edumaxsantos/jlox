@@ -13,6 +13,7 @@ public class ResolverTest {
 
     @BeforeAll
     public static void setup() {
+        Lox.systemExit = new MockExitSytem();
         var lox = new Lox();
         interpreter = new Interpreter(lox);
         resolver = new Resolver(interpreter, lox);
